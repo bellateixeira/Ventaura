@@ -11,8 +11,11 @@ using ventaura_backend.Data;
 using Microsoft.EntityFrameworkCore;
 using ventaura_backend.Utils;
 using ventaura_backend.Models;
+using ventaura_backend.Services;
+using Microsoft.Extensions.Configuration;
 using System.IO;
 using System.Text;
+using Npgsql;
 
 namespace ventaura_backend.Controllers
 {
@@ -25,12 +28,16 @@ namespace ventaura_backend.Controllers
         // Service for fetching events from combined APIs and the database context for accessing the database.
         private readonly CombinedAPIService _combinedApiService;
         private readonly DatabaseContext _dbContext;
+        private readonly IConfiguration _configuration;
+
 
         // Constructor to inject dependencies for the API service and database context.
-        public CombinedEventsController(CombinedAPIService combinedApiService, DatabaseContext dbContext)
+        public CombinedEventsController(CombinedAPIService combinedApiService, DatabaseContext dbContext, IConfiguration configuration)
         {
             _combinedApiService = combinedApiService;
             _dbContext = dbContext;
+            _configuration = configuration;
+
         }
 
         // Endpoint to fetch and store user-specific event data in a temporary table.
@@ -51,53 +58,94 @@ namespace ventaura_backend.Controllers
 
                 // Fetch events from the combined API service
                 Console.WriteLine($"Fetching events for userId {userId}...");
-                var events = await _combinedApiService.FetchEventsAsync(user.Latitude.Value, user.Longitude.Value, userId);
+                var apiEvents = await _combinedApiService.FetchEventsAsync(user.Latitude.Value, user.Longitude.Value, userId);
 
-                // Process events for CSV creation
-                if (events.Any())
+                // Fetch host events from the database
+                Console.WriteLine($"Fetching host events for userId {userId}...");
+                var hostEvents = await _dbContext.HostEvents.ToListAsync();
+
+                var geocodingService = new GoogleGeocodingService(new HttpClient(), _configuration);
+
+                var processedHostEvents = new List<CombinedEvent>();
+
+                foreach (var he in hostEvents)
                 {
-                    Console.WriteLine($"Preparing data for {events.Count} events to generate CSV.");
+                    double latitude, longitude;
+
+                    // Try parsing the location as coordinates or geocode it
+                    if (!TryParseLocation(he.Location, out latitude, out longitude))
+                    {
+                        var geocodeResult = await geocodingService.GetCoordinatesAsync(he.Location);
+                        if (geocodeResult != null)
+                        {
+                            latitude = geocodeResult.Value.latitude;
+                            longitude = geocodeResult.Value.longitude;
+                        }
+                        else
+                        {
+                            Console.WriteLine($"Skipping host event '{he.Title}' due to invalid location.");
+                            continue; // Skip this event if location can't be resolved
+                        }
+                    }
+
+                    var distance = DistanceCalculator.CalculateDistance(
+                        user.Latitude.Value,
+                        user.Longitude.Value,
+                        latitude,
+                        longitude
+                    );
+
+                    processedHostEvents.Add(new CombinedEvent
+                    {
+                        Title = he.Title,
+                        Description = he.Description,
+                        Location = he.Location,
+                        Start = he.Start, // Ensure this is the property
+                        Source = he.Source,
+                        Type = he.Type,
+                        CurrencyCode = he.CurrencyCode,
+                        Amount = (decimal?)he.Amount, // Explicit conversion
+                        URL = he.URL,
+                        Distance = distance // Correct usage
+                    });
+                }
+
+                // Combine API and processed host events
+                var allEvents = apiEvents.Select(e => new CombinedEvent
+                {
+                    Title = e.Title,
+                    Description = e.Description,
+                    Location = e.Location,
+                    Start = e.Start,
+                    Source = e.Source,
+                    Type = e.Type,
+                    CurrencyCode = e.CurrencyCode,
+                    Amount = (decimal?)e.Amount, // Explicit conversion
+                    URL = e.URL,
+                    Distance = e.Distance
+                }).ToList();
+
+                allEvents.AddRange(processedHostEvents);
+
+                // Generate CSV
+                if (allEvents.Any())
+                {
+                    Console.WriteLine($"Preparing data for {allEvents.Count} events to generate CSV.");
 
                     var csvFilePath = Path.Combine("CsvFiles", $"{userId}.csv");
-
-                    // Ensure the directory exists
                     var directory = Path.GetDirectoryName(csvFilePath);
                     if (!Directory.Exists(directory))
                     {
                         Directory.CreateDirectory(directory);
                     }
 
-                    // Write CSV file
                     using (var writer = new StreamWriter(csvFilePath, false, Encoding.UTF8))
                     {
-                        // Write header
-                        // Write lowercase header with contentId
                         await writer.WriteLineAsync("contentId,title,description,location,start,source,type,currencyCode,amount,url,distance");
-                        
-                        int contentIdCounter = 1; // Start unique ID counter
-                        foreach (var e in events)
+                        int contentIdCounter = 1;
+
+                        foreach (var e in allEvents)
                         {
-                            // Handle invalid or missing event locations
-                            double eventLatitude, eventLongitude;
-                            if (string.IsNullOrEmpty(e.Location) ||
-                                !e.Location.Contains(",") ||
-                                !double.TryParse(e.Location.Split(',')[0], out eventLatitude) ||
-                                !double.TryParse(e.Location.Split(',')[1], out eventLongitude))
-                            {
-                                eventLatitude = user.Latitude.Value;
-                                eventLongitude = user.Longitude.Value;
-                            }
-
-                            var distance = DistanceCalculator.CalculateDistance(
-                                user.Latitude.Value,
-                                user.Longitude.Value,
-                                eventLatitude,
-                                eventLongitude
-                            );
-                            e.Distance = (float)distance;
-
-                            // Write event data to CSV
-                            // Write event data to CSV without quotes
                             await writer.WriteLineAsync($"{contentIdCounter}," +
                                                         $"{e.Title}," +
                                                         $"{e.Description}," +
@@ -109,9 +157,7 @@ namespace ventaura_backend.Controllers
                                                         $"{e.Amount?.ToString() ?? ""}," +
                                                         $"{e.URL}," +
                                                         $"{e.Distance}");
-
-
-                            contentIdCounter++; // Increment contentId for the next event
+                            contentIdCounter++;
                         }
                     }
 
@@ -121,9 +167,7 @@ namespace ventaura_backend.Controllers
                     {
                         Message = "Events processed successfully and CSV created.",
                         CsvPath = csvFilePath,
-                        TotalEvents = events.Count,
-                        ValidEvents = events.Count(e => !string.IsNullOrEmpty(e.Location)),
-                        InvalidEvents = events.Count(e => string.IsNullOrEmpty(e.Location))
+                        TotalEvents = allEvents.Count
                     });
                 }
                 else
@@ -139,32 +183,15 @@ namespace ventaura_backend.Controllers
             }
         }
 
-        // Endpoint for the frontend to access th csv file - TO BE MODIFIEF
-        [HttpGet("get-csv")]
-        public IActionResult GetCsv([FromQuery] int userId)
+        private bool TryParseLocation(string location, out double latitude, out double longitude)
         {
-            try
-            {
-                var csvFilePath = Path.Combine("CsvFiles", $"{userId}.csv");
+            latitude = 0;
+            longitude = 0;
+            if (string.IsNullOrEmpty(location) || !location.Contains(","))
+                return false;
 
-                if (!System.IO.File.Exists(csvFilePath))
-                {
-                    Console.WriteLine($"CSV file {csvFilePath} does not exist.");
-                    return NotFound(new { Message = "CSV file not found." });
-                }
-
-                // Return the CSV file as a response
-                var fileStream = new FileStream(csvFilePath, FileMode.Open, FileAccess.Read);
-                var fileName = $"{userId}.csv";
-
-                Console.WriteLine($"Serving CSV file {csvFilePath}.");
-                return File(fileStream, "text/csv", fileName);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error while fetching CSV for user {userId}: {ex.Message}");
-                return StatusCode(500, "An error occurred while fetching the CSV file.");
-            }
+            var parts = location.Split(',');
+            return double.TryParse(parts[0].Trim(), out latitude) && double.TryParse(parts[1].Trim(), out longitude);
         }
 
         // Endpoint to log out a user and delete their associated CSV file.
@@ -218,41 +245,84 @@ namespace ventaura_backend.Controllers
             }
         }
 
-        // Endpoint to add a host event to database
+        // Endpoint to add a host event to the database
         [HttpPost("create-host-event")]
-        public async Task<IActionResult> CreateHostEvent([FromBody] HostEvent hostEvent)
+        public async Task<IActionResult> CreateHostEvent([FromBody] HostEvent newEvent)
         {
             try
             {
-                // Validate the incoming event data
+                Console.WriteLine("Start CreateHostEvent process...");
+
+                // Validate the input model
                 if (!ModelState.IsValid)
                 {
-                    Console.WriteLine("Invalid host event data received.");
-                    return BadRequest("Invalid event data.");
+                    Console.WriteLine("Validation failed: Missing required fields.");
+                    return BadRequest(ModelState);
                 }
 
-                // Set default values for Source and CreatedAt
-                hostEvent.Source = "Host";
-                hostEvent.CreatedAt = DateTime.UtcNow;
+                // Retry mechanism for transient failures
+                var executionStrategy = _dbContext.Database.CreateExecutionStrategy();
+                await executionStrategy.ExecuteAsync(async () =>
+                {
+                    using (var transaction = await _dbContext.Database.BeginTransactionAsync())
+                    {
+                        // Check for duplicate event title by the same host
+                        Console.WriteLine($"Checking if event '{newEvent.Title}' already exists for host {newEvent.HostUserId}...");
+                        var existingEvent = await _dbContext.HostEvents.AsNoTracking()
+                            .FirstOrDefaultAsync(e => e.Title == newEvent.Title && e.HostUserId == newEvent.HostUserId);
 
-                // Add the new host event to the database
-                await _dbContext.HostEvents.AddAsync(hostEvent);
-                await _dbContext.SaveChangesAsync();
+                        if (existingEvent != null)
+                        {
+                            throw new InvalidOperationException($"An event with the title '{newEvent.Title}' already exists for this host.");
+                        }
 
-                Console.WriteLine($"Host event '{hostEvent.Title}' created successfully.");
+                        // Prepare new host event object
+                        var hostEvent = new HostEvent
+                        {
+                            Title = newEvent.Title,
+                            Description = newEvent.Description,
+                            Location = newEvent.Location,
+                            Start = newEvent.Start,
+                            Source = "Host",
+                            Type = newEvent.Type,
+                            CurrencyCode = newEvent.CurrencyCode,
+                            Amount = newEvent.Amount,
+                            URL = newEvent.URL,
+                            CreatedAt = DateTime.UtcNow,
+                            HostUserId = newEvent.HostUserId
+                        };
+
+                        Console.WriteLine("Adding host event to database...");
+                        await _dbContext.HostEvents.AddAsync(hostEvent);
+                        await _dbContext.SaveChangesAsync();
+                        await transaction.CommitAsync();
+
+                        Console.WriteLine($"Host event '{hostEvent.Title}' successfully created in database.");
+                    }
+                });
 
                 return Ok(new
                 {
-                    Message = "Host event created successfully.",
-                    EventId = hostEvent.EventId
+                    Message = "Host event created successfully."
                 });
+            }
+            catch (InvalidOperationException ex)
+            {
+                Console.WriteLine($"Validation error: {ex.Message}");
+                return Conflict(ex.Message);
+            }
+            catch (DbUpdateException ex) when (ex.InnerException is PostgresException pgEx && pgEx.SqlState == "23505")
+            {
+                Console.WriteLine($"Duplicate event error: {pgEx.MessageText}");
+                return Conflict("An event with this title already exists for this host.");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error creating host event: {ex.Message}");
-                return StatusCode(500, $"Error creating host event: {ex.Message}");
+                Console.WriteLine($"Error: {ex.Message}");
+                return StatusCode(500, "An unexpected error occurred.");
             }
         }
+
 
         // OLD Endpoint to fetch and store user-specific event data in a temporary table.
         /* [HttpGet("fetch")]
