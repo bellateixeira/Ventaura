@@ -16,6 +16,7 @@ using Microsoft.Extensions.Configuration;
 using System.IO;
 using System.Text;
 using Npgsql;
+using System.Collections.Generic;
 
 namespace ventaura_backend.Controllers
 {
@@ -182,6 +183,7 @@ namespace ventaura_backend.Controllers
                 return StatusCode(500, "An error occurred while fetching events.");
             }
         }
+
         private bool TryParseLocation(string location, out double latitude, out double longitude)
         {
             latitude = 0;

@@ -171,9 +171,84 @@ namespace ventaura_backend.Controllers
                 return StatusCode(500, "An error occurred while logging in.");
             }
         }
+
+        // Endpoint to save updated user preferences to the table in the database
+        [HttpPut("updatePreferences")]
+        public async Task<IActionResult> UpdateUserPreferences([FromBody] UpdateUserPreferencesDto updatedPreferences)
+        {
+            try
+            {
+                // Validate incoming data
+                if (updatedPreferences == null || updatedPreferences.UserId <= 0)
+                {
+                    return BadRequest("Invalid user details provided.");
+                }
+
+                // Find the user in the database
+                var user = await _dbContext.Users.FindAsync(updatedPreferences.UserId);
+                if (user == null)
+                {
+                    return NotFound($"User with ID {updatedPreferences.UserId} not found.");
+                }
+
+                Console.WriteLine("User found.");
+                Console.WriteLine("Updating user information.");
+
+                // Update the user's details only if provided (null or empty values are ignored)
+                if (!string.IsNullOrEmpty(updatedPreferences.Email))
+                {
+                    user.Email = updatedPreferences.Email;
+                }
+                if (!string.IsNullOrEmpty(updatedPreferences.FirstName))
+                {
+                    user.FirstName = updatedPreferences.FirstName;
+                }
+                if (!string.IsNullOrEmpty(updatedPreferences.LastName))
+                {
+                    user.LastName = updatedPreferences.LastName;
+                }
+                if (!string.IsNullOrEmpty(updatedPreferences.Preferences))
+                {
+                    user.Preferences = updatedPreferences.Preferences;
+                }
+                if (!string.IsNullOrEmpty(updatedPreferences.Dislikes))
+                {
+                    user.Dislikes = updatedPreferences.Dislikes;
+                }
+                if (!string.IsNullOrEmpty(updatedPreferences.PriceRange))
+                {
+                    user.PriceRange = updatedPreferences.PriceRange;
+                }
+                if (updatedPreferences.MaxDistance.HasValue)
+                {
+                    user.MaxDistance = updatedPreferences.MaxDistance;
+                }
+                if (updatedPreferences.Latitude.HasValue)
+                {
+                    user.Latitude = updatedPreferences.Latitude;
+                }
+                if (updatedPreferences.Longitude.HasValue)
+                {
+                    user.Longitude = updatedPreferences.Longitude;
+                }
+
+                // Save changes to the database
+                _dbContext.Users.Update(user);
+                await _dbContext.SaveChangesAsync();
+
+                Console.WriteLine("User preferences updated successfully.");
+
+                return Ok(new { Message = "User preferences updated successfully." });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in UpdateUserPreferences: {ex.Message}");
+                return StatusCode(500, "An error occurred while updating user preferences.");
+            }
+        }
     }
 
-    // Data Transfer Object (DTO) to handle login request details.
+    // Data Transfer Object (DTO) to handle login request details
     public class UserLoginRequest
     {
         public string Email { get; set; }
@@ -182,4 +257,18 @@ namespace ventaura_backend.Controllers
         public double? Longitude { get; set; }
     }
 
+    // Data Transfer Object (DTO) to define the fields that can be updated
+    public class UpdateUserPreferencesDto
+    {
+        public int UserId { get; set; } // Required field
+        public string? Email { get; set; } // Optional
+        public string? FirstName { get; set; } // Optional
+        public string? LastName { get; set; } // Optional
+        public string? Preferences { get; set; } // Optional
+        public string? Dislikes { get; set; } // Optional
+        public string? PriceRange { get; set; } // Optional
+        public double? MaxDistance { get; set; } // Optional
+        public double? Latitude { get; set; } // Optional
+        public double? Longitude { get; set; } // Optional
+    }
 }
