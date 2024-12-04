@@ -182,7 +182,6 @@ namespace ventaura_backend.Controllers
                 return StatusCode(500, "An error occurred while fetching events.");
             }
         }
-
         private bool TryParseLocation(string location, out double latitude, out double longitude)
         {
             latitude = 0;
