@@ -124,9 +124,8 @@ namespace ventaura_backend.Controllers
                 Console.WriteLine($"Login attempt for email: {loginRequest.Email}");
 
                 // Check if a user with the provided email exists in the database.
-                var user = await _dbContext.Users
-                    .AsNoTracking()
-                    .FirstOrDefaultAsync(u => u.Email == loginRequest.Email);
+                var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Email == loginRequest.Email);
+
 
                 // Validate the user's password using bcrypt.
                 if (user == null || !BCrypt.Net.BCrypt.Verify(loginRequest.Password, user.PasswordHash))
@@ -134,9 +133,6 @@ namespace ventaura_backend.Controllers
                     Console.WriteLine($"Invalid login attempt for email {loginRequest.Email}.");
                     return BadRequest(new { Message = "Invalid email or password." });
                 }
-
-                // Re-fetch the user as tracking is needed for updates.
-                user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Email == loginRequest.Email);
 
                 if (user == null)
                 {
