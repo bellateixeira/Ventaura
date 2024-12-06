@@ -3,6 +3,8 @@ the Amadeus API in the Ventaura application. These models map the JSON response 
 the API into strongly-typed C# objects, enabling easy handling and integration of 
 activities and event data into the application. */
 
+// NOT IN USE
+
 namespace ventaura_backend.Models
 {
     // Represents the top-level structure of the Amadeus API response.
