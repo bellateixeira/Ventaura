@@ -1,14 +1,24 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import "../styles.css"; // Import the global CSS
 
 const ContactUs = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const navigate = useNavigate();
+  const [userId, setUserId] = useState(localStorage.getItem("userId"));
+
+  useEffect(() => {
+    // Redirect to login if the user is not logged in
+    if (!userId) {
+      alert("You are not logged in. Redirecting to login page.");
+      navigate("/login");
+    }
+  }, [userId, navigate]);
 
   const handleManualLogout = () => {
-    // Handle logout logic here (optional, based on your app's requirements)
-    alert("Logged out (logout logic not implemented).");
+    // Clear userId from localStorage and redirect to login
+    localStorage.removeItem("userId");
+    alert("Logged out successfully.");
     navigate("/login");
   };
 

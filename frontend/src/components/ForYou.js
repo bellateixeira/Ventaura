@@ -7,7 +7,8 @@ import "../styles.css"; // Import the global CSS
 const ForYou = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { userId } = location.state || {};
+
+  const [userId, setUserId] = useState(localStorage.getItem("userId"));
   const [events, setEvents] = useState([]);
   const [message, setMessage] = useState("");
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -94,8 +95,6 @@ const ForYou = () => {
   }, [userId, navigate]);
 
   const handleManualLogout = async () => {
-    const userId = localStorage.getItem("userId"); // Retrieve userId from localStorage
-
     if (!userId) {
       alert("No user ID found in local storage.");
       return;
@@ -106,9 +105,8 @@ const ForYou = () => {
         `http://localhost:5152/api/combined-events/logout?userId=${userId}`
       );
 
-      // Remove the userId from localStorage
+      // Remove userId from localStorage
       localStorage.removeItem("userId");
-
       alert(response.data.Message);
       navigate("/login");
     } catch (error) {

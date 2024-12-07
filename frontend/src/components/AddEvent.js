@@ -1,21 +1,49 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import '../styles.css'; // Ensure to import global CSS
 
 const AddEvent = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const navigate = useNavigate();
+  const [userId, setUserId] = useState(localStorage.getItem('userId'));
 
-  const handleManualLogout = () => {
-    // Handle logout logic here (optional, based on your app's requirements)
-    alert("Logged out (logout logic not implemented).");
-    navigate("/login");
+  // Check if the user is logged in when the component mounts
+  useEffect(() => {
+    if (!userId) {
+      navigate('/login');
+    }
+  }, [userId, navigate]);
+
+  const handleManualLogout = async () => {
+    if (!userId) {
+      alert("No user ID found in local storage.");
+      return;
+    }
+
+    try {
+      // Send logout request to the server
+      const response = await axios.post(
+        `http://localhost:5152/api/combined-events/logout?userId=${userId}`
+      );
+
+      // Remove userId from localStorage
+      localStorage.removeItem('userId');
+      alert(response.data.Message || "Logged out successfully.");
+      navigate("/login");
+    } catch (error) {
+      if (error.response) {
+        alert(error.response.data.Message || "Error logging out.");
+      } else {
+        alert("An error occurred while logging out.");
+      }
+    }
   };
 
   return (
     <div>
-            {/* Header */}
-            <header className="header">
+      {/* Header */}
+      <header className="header">
         <button
           className="sidebar-button"
           onClick={() => setIsSidebarOpen(!isSidebarOpen)}
@@ -52,25 +80,26 @@ const AddEvent = () => {
           Logout
         </Link>
       </div>
-      
-    <div className="container">
-      <header className="header">
-        <h2 className="page-title">Add Event Here:</h2>
-      </header>
 
-      <form className="event-form">
-        {/* Submit Button - only enabled if the form is valid */}
-        <form action="http://localhost:5152/api/create-checkout-session" method="POST">
-          <button 
-            type="submit" 
-            role="link" 
-            className="submit-button" 
-          >
-            Make Payment
-          </button>
+      {/* Main Content */}
+      <div className="container">
+        <header className="header">
+          <h2 className="page-title">Add Event Here:</h2>
+        </header>
+
+        <form className="event-form">
+          {/* Submit Button - only enabled if the form is valid */}
+          <form action="http://localhost:5152/api/create-checkout-session" method="POST">
+            <button 
+              type="submit" 
+              role="link" 
+              className="submit-button" 
+            >
+              Make Payment
+            </button>
+          </form>
         </form>
-      </form>
-    </div>
+      </div>
     </div>
   );
 };
