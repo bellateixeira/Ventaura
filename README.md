@@ -63,16 +63,23 @@ API keys for external services like Ticketmaster, Amadeus, Google Maps Geocoding
 **TO RUN**
 
 1. In a terminal, change into the backend/ventaura_backend directory.
+   
    Run the following: dotnet restore
+   
                       dotnet build
+   
                       dotnet run
 
-2. In a new terminal, change into the backend/Ranking directory.
+3. In a new terminal, change into the backend/Ranking directory.
+   
    Run the following: pip install fastapi
+   
                       pip install uvicorn
+   
                       python app.py
 
-3. In a new terminal, change into the frontend directory.
+5. In a new terminal, change into the frontend directory.
+   
    Run the following: npm start
 
 Access the website at: http://localhost:3000/
