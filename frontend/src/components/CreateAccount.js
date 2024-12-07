@@ -162,7 +162,8 @@ const CreateAccount = () => {
 
         <div>
           <h3>Select Preferences:</h3>
-          {["Festivals-Fairs", "Music", "Performing-Arts", "Visual-Arts", "Sports-active-life", "Nightlife", "Film", "Charities", "Kids-Family", "Food-and-Drink", "Other"].map((preference) => (
+          {["Festivals-Fairs", "Music", "Performing-Arts", "Visual-Arts", "Sports-active-life", "Nightlife", "Film", 
+          "Charities", "Kids-Family", "Food-and-Drink", "Other"].map((preference) => (
             <button
               type="button"
               key={preference}
