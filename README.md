@@ -92,3 +92,4 @@ Access the website at: http://localhost:3000/
 
 Enjoy!
 
+FOR DEVELOPER: SUPABASE: https://supabase.com/dashboard/project/lzrnyahwsvygmcdqofkm
