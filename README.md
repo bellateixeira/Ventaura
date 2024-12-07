@@ -20,7 +20,7 @@ The Ventaura application consists of two main parts: a backend (ASP.NET Core) an
 
 **Technologies Used**
 
-Backend:
+***Backend:***
 
 ASP.NET Core / C#: For building APIs and implementing business logic.
 
@@ -32,7 +32,7 @@ Stripe: For payment handling and checkout sessions.
 
 External APIs: Ticketmaster, Amadeus, Google Geocoding, Yelp Fusion.
 
-Frontend:
+***Frontend:***
 
 React (JavaScript/TypeScript): For building a modern, interactive, and responsive web UI.
 
