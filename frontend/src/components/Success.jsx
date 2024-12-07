@@ -29,6 +29,30 @@ const Success = () => {
     }
   }, [sessionId]);
 
+  useEffect(() => {
+    if (window.google && window.google.maps && window.google.maps.places) {
+      const input = document.querySelector('input[name="eventLocation"]');
+      if (input) {
+        // Create the autocomplete object
+        const autocomplete = new window.google.maps.places.Autocomplete(input, {
+          types: ['geocode'] // Restrict the suggestions to addresses only
+        });
+  
+        // Add a listener for when a place is selected
+        autocomplete.addListener('place_changed', () => {
+          const place = autocomplete.getPlace();
+          if (place && place.formatted_address) {
+            // Update the formData with the selected address
+            setFormData((prevData) => ({
+              ...prevData,
+              eventLocation: place.formatted_address
+            }));
+          }
+        });
+      }
+    }
+  }, []);  
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({
