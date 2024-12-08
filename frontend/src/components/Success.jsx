@@ -1,18 +1,22 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
 import "../styles.css"; // Import the global CSS
 import { useNavigate } from "react-router-dom"; // Import useNavigate hook
 
 const Success = () => {
+  const [userId] = useState(localStorage.getItem("userId"));
+
   const [formData, setFormData] = useState({
-    eventTitle: "",
-    eventDescription: "",
-    eventLocation: "",
-    eventDate: "",
-    eventTime: "",
-    eventType: "",
-    price: "",
-    contactInfo: "",
+    "title": "",
+    "description": "",
+    "location": "",
+    "start": "",
+    "type": "",
+    "currencyCode": "USD",
+    "amount": "",
+    "url": "",
+    "hostUserId": userId,
+    "eventDate": "",
+    "eventTime": "" 
   });
   const [message, setMessage] = useState("");
   const navigate = useNavigate(); // Initialize navigate hook
@@ -31,7 +35,7 @@ const Success = () => {
 
   useEffect(() => {
     if (window.google && window.google.maps && window.google.maps.places) {
-      const input = document.querySelector('input[name="eventLocation"]');
+      const input = document.querySelector('input[name="location"]');
       if (input) {
         // Create the autocomplete object
         const autocomplete = new window.google.maps.places.Autocomplete(input, {
@@ -45,7 +49,7 @@ const Success = () => {
             // Update the formData with the selected address
             setFormData((prevData) => ({
               ...prevData,
-              eventLocation: place.formatted_address
+              location: place.formatted_address
             }));
           }
         });
@@ -62,6 +66,62 @@ const Success = () => {
   };
 
   const handleSubmit = async (e) => {
+    e.preventDefault(); // Prevent default form submission
+
+    // Extract date and time from form data
+    const date = formData.eventDate; // "2024-12-08"
+    const time = formData.eventTime; // "00:49"
+
+    // Combine into an ISO 8601 string
+    // Append 'T' to separate date and time, and 'Z' for UTC if necessary
+    formData.start = `${date}T${time}:00.000Z`;
+
+    try {
+      // Prepare the payload
+      const payload = {
+        Title: formData.title,
+        Description: formData.description,
+        Location: formData.location,
+        Start: new Date(formData.start).toISOString(), // Ensure this is in a valid date format
+        Source: "Host",
+        Type: formData.type,
+        CurrencyCode: formData.currencyCode,
+        Amount: parseFloat(formData.amount), // Ensure amount is a number
+        URL: formData.url,
+        HostUserId: parseInt(formData.hostUserId)
+      };
+
+      // Send the POST request
+      const response = await fetch('http://localhost:5152/api/combined-events/create-host-event', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+
+      // Check for response status
+      if (!response.ok) {
+        if (response.status === 409) {
+          console.error("Conflict error: An event with this title already exists for this host.");
+          alert("An event with this title already exists for this host.");
+        } else if (response.status === 400) {
+          console.error("Bad request: Validation failed.");
+          alert("Validation failed. Please check your input.");
+        } else {
+          console.error("Unexpected error occurred.");
+          alert("An unexpected error occurred. Please try again later.");
+        }
+        return;
+      }
+
+      const result = await response.json();
+      console.log("Host event created successfully:", result);
+      alert("Host event created successfully!");
+    } catch (error) {
+      console.error("An error occurred while creating the event:", error);
+      alert("An error occurred while creating the event.");
+    }
     navigate("/for-you"); // Redirect to the /for-you page
   };
 
@@ -79,8 +139,8 @@ const Success = () => {
               <label>Event Title:</label>
               <input
                 type="text"
-                name="eventTitle"
-                value={formData.eventTitle}
+                name="title"
+                value={formData.title}
                 onChange={handleChange}
                 className="form-input"
                 required
@@ -90,8 +150,8 @@ const Success = () => {
             <div className="form-group">
               <label>Event Description:</label>
               <textarea
-                name="eventDescription"
-                value={formData.eventDescription}
+                name="description"
+                value={formData.description}
                 onChange={handleChange}
                 className="form-input"
                 required
@@ -102,8 +162,8 @@ const Success = () => {
               <label>Location:</label>
               <input
                 type="text"
-                name="eventLocation"
-                value={formData.eventLocation}
+                name="location"
+                value={formData.location}
                 onChange={handleChange}
                 className="form-input"
                 required
@@ -137,8 +197,8 @@ const Success = () => {
             <div className="form-group">
               <label>Event Type:</label>
               <select
-                name="eventType"
-                value={formData.eventType}
+                name="type"
+                value={formData.type}
                 onChange={handleChange}
                 className="form-input"
                 required
@@ -160,8 +220,8 @@ const Success = () => {
               <label>Price (USD):</label>
               <input
                 type="number"
-                name="price"
-                value={formData.price}
+                name="amount"
+                value={formData.amount}
                 onChange={handleChange}
                 className="form-input"
                 required
@@ -172,8 +232,8 @@ const Success = () => {
               <label>Contact Info (Phone number):</label>
               <input
                 type="text"
-                name="contactInfo"
-                value={formData.contactInfo}
+                name="url"
+                value={formData.url}
                 onChange={handleChange}
                 className="form-input"
                 required
