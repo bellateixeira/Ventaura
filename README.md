@@ -96,6 +96,8 @@ Or direct to the branch: git clone --branch final-submission https://github.com/
    
    Run the following:
 
+                      npm install
+
                       npm start
 
 Access the website at: http://localhost:3000/
