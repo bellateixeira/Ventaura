@@ -3,7 +3,9 @@ API in the Ventaura application. It fetches activity and event data based on use
 processes the API response, and converts the data into a format suitable for integration into the application.
 The service also handles authentication by retrieving an access token from Amadeus. */
 
-using System.Net.Http.Headers;
+// NO LONGER IN USE BUT KEPT FOR EVIDENCE OF WORK
+
+/* using System.Net.Http.Headers;
 using System.Text;
 using ventaura_backend.Models;
 using Newtonsoft.Json.Linq;
@@ -128,4 +130,4 @@ namespace ventaura_backend.Services
             }
         }
     }
-}
+} */

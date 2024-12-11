@@ -100,6 +100,12 @@ FOR DEVELOPER: SUPABASE: https://supabase.com/dashboard/project/lzrnyahwsvygmcdq
 - Saved events repository for users.
 - Amadeus API was replaced with Yelp API.
 
+***Other notes:***
+
+Please read the backend README.md for more detailed information on the backend implementation. 
+
+Snapshot of the database:
+
 <img width="1440" alt="Screenshot 2024-12-10 at 20 31 19" src="https://github.com/user-attachments/assets/9a29b6ae-9b1c-4036-94ff-841f60bc7bcb">
 
 
