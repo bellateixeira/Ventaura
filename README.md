@@ -86,6 +86,8 @@ A modern browser (for running the frontend)
    
    Run the following:
 
+                      npm install
+
                       npm start
 
 Access the website at: http://localhost:3000/
