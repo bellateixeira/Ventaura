@@ -30,7 +30,7 @@ PostgreSQL: The relational database used to store users and host events (Managed
 
 Stripe: For payment handling and checkout sessions.
 
-'Home made' API using FastAPI for Ranking logic.
+Custom API using FastAPI for Ranking logic.
 
 External APIs: Ticketmaster, Google Geocoding, Yelp Fusion, & Stripe.
 
@@ -51,6 +51,8 @@ CORS Policies: To allow the frontend to communicate with the backend during deve
 .NET 7.0 SDK or compatible (for backend development)
 
 Node.js (v14 or later) and npm or yarn (for frontend development)
+
+Python 3.12
 
 PostgreSQL database (Supabase instance or local Postgres) (make sure it is listening on port 5432, which is the default)
 
@@ -98,11 +100,7 @@ Or direct to the branch:
    
    Run the following:
    
-                      pip install fastapi
-   
-                      pip install uvicorn
-
-                      pip install httpx
+                      pip install -r requirements.txt
    
                       python app.py
 
@@ -110,7 +108,7 @@ Or direct to the branch:
    
    Run the following:
 
-                      npm install
+                      npm install react-scripts
 
                       npm start
 
