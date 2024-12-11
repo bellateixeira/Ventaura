@@ -98,4 +98,9 @@ FOR DEVELOPER: SUPABASE: https://supabase.com/dashboard/project/lzrnyahwsvygmcdq
 
 - Chat function with hosts.
 - Saved events repository for users.
-- Amadeus API was replaced with Yelp API. 
+- Amadeus API was replaced with Yelp API.
+
+<img width="1440" alt="Screenshot 2024-12-10 at 20 31 19" src="https://github.com/user-attachments/assets/9a29b6ae-9b1c-4036-94ff-841f60bc7bcb">
+
+
+
