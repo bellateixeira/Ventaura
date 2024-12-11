@@ -16,7 +16,7 @@
 
 **Overview**
 
-The Ventaura application consists of two main parts: a backend (ASP.NET Core) and a frontend (React). The backend provides a RESTful API for user management, event retrieval and merging, geocoding, and event ranking. It connects to external services (such as Ticketmaster and Amadeus APIs) and a PostgreSQL database (Supabase) to store user data and host events. The frontend consumes the backend API to deliver a responsive, user-friendly interface for viewing and interacting with events.
+The Ventaura application consists of two main parts: a backend (ASP.NET Core) and a frontend (React). The backend provides a RESTful API for user management, event retrieval and merging, geocoding, and event ranking. It connects to external services (such as Ticketmaster and Yelp APIs) and a PostgreSQL database (Supabase) to store user data and host events. The frontend consumes the backend API to deliver a responsive, user-friendly interface for viewing and interacting with events.
 
 **Technologies Used**
 
@@ -30,13 +30,15 @@ PostgreSQL: The relational database used to store users and host events (Managed
 
 Stripe: For payment handling and checkout sessions.
 
-External APIs: Ticketmaster, Amadeus, Google Geocoding, Yelp Fusion.
+'Home made' API using FastAPI for Ranking logic.
+
+External APIs: Ticketmaster, Google Geocoding, Yelp Fusion, & Stripe.
 
 ***Frontend:***
 
 React (JavaScript/TypeScript): For building a modern, interactive, and responsive web UI.
 
-Axios or Fetch API: To communicate with the backend services.
+Axios: To communicate with the backend services.
 
 Development Tools:
 
@@ -55,10 +57,6 @@ PostgreSQL database (Supabase instance or local Postgres)
 Git (for version control)
 
 A modern browser (for running the frontend)
-
-Stripe account (optional, if you plan to use payment functionality)
-
-API keys for external services like Ticketmaster, Amadeus, Google Maps Geocoding, and Yelp Fusion (if required).
 
 **TO RUN**
 
@@ -79,6 +77,8 @@ API keys for external services like Ticketmaster, Amadeus, Google Maps Geocoding
                       pip install fastapi
    
                       pip install uvicorn
+
+                      pip install httpx
    
                       python app.py
 
@@ -93,3 +93,9 @@ Access the website at: http://localhost:3000/
 Enjoy!
 
 FOR DEVELOPER: SUPABASE: https://supabase.com/dashboard/project/lzrnyahwsvygmcdqofkm
+
+***Features that have been stubbed with approval and saved for future implementation:***
+
+- Chat function with hosts.
+- Saved events repository for users.
+- Amadeus API was replaced with Yelp API. 
