@@ -52,6 +52,8 @@ Node.js (v14 or later) and npm or yarn (for frontend development)
 
 PostgreSQL database (Supabase instance or local Postgres)
 
+Python 3.12
+
 Git (for version control)
 
 A modern browser (for running the frontend)
@@ -76,16 +78,16 @@ API keys for external services like Ticketmaster, Amadeus, Google Maps Geocoding
    
    Run the following:
    
-                      pip install fastapi
-   
-                      pip install uvicorn
+                      pip install -r requirements.txt
    
                       python app.py
 
 5. In a new terminal, change into the frontend directory.
    
    Run the following:
-
+   
+                      npm install react-scripts
+            
                       npm start
 
 Access the website at: http://localhost:3000/
