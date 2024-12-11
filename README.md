@@ -52,11 +52,20 @@ CORS Policies: To allow the frontend to communicate with the backend during deve
 
 Node.js (v14 or later) and npm or yarn (for frontend development)
 
-PostgreSQL database (Supabase instance or local Postgres)
+PostgreSQL database (Supabase instance or local Postgres) (make sure it is listening on port 5432, which is the default)
 
 Git (for version control)
 
 A modern browser (for running the frontend)
+
+Once in the app, run:
+   dotnet add package Microsoft.EntityFrameworkCore
+   dotnet add package Microsoft.EntityFrameworkCore.Tools
+   dotnet add package Microsoft.EntityFrameworkCore.Npqsql
+   dotnet add package Stripe
+   dotnet add package DotNetEnv
+   dotnet add package Swashbuckle.AspNetCore
+   dotnet add package Microsoft.AspNetCore.Http.Abstractions
 
 **TO RUN**
 
