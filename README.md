@@ -60,15 +60,20 @@ A modern browser (for running the frontend)
 
 **TO RUN**
 
-MAIN REPO: git clone https://github.com/your-username/Ventaura.git
+Access our code from GitHub:
+Main Repo:
 
-cd Ventaura
+          git clone https://github.com/your-username/Ventaura.git
 
-git checkout final-submission
+          cd Ventaura
+
+          git checkout final-submission
 
 **ENSURE YOU ARE IN OUR FINAL SUBMISSION BRANCH FOR RUNNING OUR APP AND SEEING THE FINAL CODE FILES!**
 
-Or direct to the branch: git clone --branch final-submission https://github.com/your-username/Ventaura.git
+Or direct to the branch: 
+
+          git clone --branch final-submission https://github.com/your-username/Ventaura.git
 
 1. In a terminal, change into the backend/ventaura_backend directory.
    
