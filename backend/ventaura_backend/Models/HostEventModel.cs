@@ -18,6 +18,13 @@ namespace ventaura_backend.Models
         // The event location. This could be a physical address or coordinates.
         public string Location { get; set; }
 
+         public decimal? Latitude { get; set; }
+
+        // The longitude of the event location.
+        public decimal? Longitude { get; set; }
+
+
+
         // The scheduled start date and time of the event (if applicable).
         public DateTime? Start { get; set; }
 

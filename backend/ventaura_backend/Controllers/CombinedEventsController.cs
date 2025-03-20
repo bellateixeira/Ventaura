@@ -78,9 +78,16 @@ namespace ventaura_backend.Controllers
                 foreach (var he in hostEvents)
                 {
                     double latitude, longitude;
-
-                    // Try to parse the location as coordinates. If unsuccessful, geocode the location string.
-                    if (!TryParseLocation(he.Location, out latitude, out longitude))
+                    
+                    // First, check if we already have coordinates in the database
+                    if (he.Latitude.HasValue && he.Longitude.HasValue)
+                    {
+                        // Use the coordinates stored in the database
+                        latitude = (double)he.Latitude.Value;
+                        longitude = (double)he.Longitude.Value;
+                    }
+                    // Only try to parse or geocode if we don't have coordinates
+                    else if (!TryParseLocation(he.Location, out latitude, out longitude))
                     {
                         var geocodeResult = await geocodingService.GetCoordinatesAsync(he.Location);
                         if (geocodeResult != null)
@@ -90,7 +97,6 @@ namespace ventaura_backend.Controllers
                         }
                         else
                         {
-                            // If location can't be resolved, skip this event.
                             Console.WriteLine($"Skipping host event '{he.Title}' due to invalid location.");
                             continue;
                         }
